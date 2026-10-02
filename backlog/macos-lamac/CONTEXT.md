@@ -18,9 +18,10 @@ touches it; do not re-audit the world.
   p10k, aliases.sh, env.sh, tmux, fastfetch, eza, neovim, zoxide, atuin).
 - Packages: `packages/<layer>/brew.txt` (formulae) + `cask.txt` (casks), plain
   text, one per line, tap packages fully qualified (e.g.
-  `felixkratz/formulae/sketchybar`). No Brewfile, no mas.txt.
-- SketchyBar is rebuilt inspired by the Omarchy Waybar setup
-  (`stow/os-omarchy/waybar/`), not copied from the old Mac config.
+  `felixkratz/formulae/borders`). No Brewfile, no mas.txt.
+- SketchyBar was retired on 2026-10-02. Managed Macs use the native menu bar;
+  do not install or start a replacement bar, hide the native bar, or reserve
+  custom top gaps. Tasks 13-15 and 30-31 are historical records only.
 - Wallpapers: a rotation engine ALREADY EXISTS for Omarchy (commit 8fa4466,
   2026-07-07): conf at `~/.config/dotfiles/wallpapers.conf`,
   `dotfiles wallpaper rotate|status|open-local`, systemd user timer, repo+local
@@ -83,5 +84,5 @@ touches it; do not re-audit the world.
 - Ghostty global config ends with `config-file = ?~/.config/ghostty/profile-overrides`;
   that include is the per-machine hook (fornax/nox use it for font-size).
   `macos-option-as-alt` goes in lamac's profile-overrides, NOT global config.
-- Waybar reference for SketchyBar: `stow/os-omarchy/waybar/.config/waybar/`
-  (config.jsonc, style.css with the color palette, scripts/{wifi,vpn,island}.sh).
+- Omarchy continues to use Waybar independently; its configuration is not part
+  of the macOS menu-bar setup.

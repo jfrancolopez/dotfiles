@@ -56,12 +56,6 @@ Borders is managed here:
 stow/os-macos/borders/.config/borders/bordersrc
 ```
 
-SketchyBar is managed here:
-
-```text
-stow/os-macos/sketchybar/.config/sketchybar/
-```
-
 ## Raycast
 
 Raycast is installed as a cask and remains the launcher/productivity surface.
@@ -115,9 +109,7 @@ Migration steps, validation, and rollback:
 
 Until that migration runs, expect the App Store client to resurrect its
 VPN profile and on-demand rules; `Tailscale down` stops tailnet traffic
-(engine down) but macOS keeps the extension process alive. The sketchybar
-vpn plugin already prefers a PATH `tailscale` binary, so it keeps working
-unchanged after the migration.
+(engine down) but macOS keeps the extension process alive.
 
 ### ladomum.com DNS
 
@@ -168,7 +160,6 @@ The script is never called by bootstrap, update, or apply.
 | Finder show hidden files | `defaults write com.apple.finder AppleShowAllFiles -bool true; killall Finder` | `defaults delete com.apple.finder AppleShowAllFiles; killall Finder` |
 | Show all file extensions | `defaults write -g AppleShowAllExtensions -bool true; killall Finder` | `defaults delete -g AppleShowAllExtensions; killall Finder` |
 | Tap to click | `defaults write com.apple.AppleMultitouchTrackpad Clicking -bool true` | `defaults delete com.apple.AppleMultitouchTrackpad Clicking` |
-| Menu bar auto-hide (SketchyBar is primary) | `defaults write -g _HIHideMenuBar -bool true; defaults write -g AppleMenuBarVisibleInFullscreen -bool false` | `defaults write -g _HIHideMenuBar -bool false` then re-enable in System Settings > Menu Bar |
 | Key repeat fast | Documented only: `defaults write -g KeyRepeat -int 2` | `defaults delete -g KeyRepeat` |
 | Initial key repeat | Documented only: `defaults write -g InitialKeyRepeat -int 15` | `defaults delete -g InitialKeyRepeat` |
 | Disable press-and-hold accents | Documented only: `defaults write -g ApplePressAndHoldEnabled -bool false` | `defaults delete -g ApplePressAndHoldEnabled` |

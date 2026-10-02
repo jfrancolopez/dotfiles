@@ -39,8 +39,8 @@ disconnected; validation failed. Unified-log forensics
 - Community reports match and were closed without resolution
   (tailscale/tailscale#12813, #16505).
 - Dotfiles re-audited: nothing in bootstrap, brew services, LaunchAgents,
-  login items, shell init, sketchybar plugins, AeroSpace, or the dotfiles
-  CLI launches or configures Tailscale on macOS.
+  login items, shell init, AeroSpace, or the dotfiles CLI launches or
+  configures Tailscale on macOS.
 
 The OSS daemon has no Network Extension and no on-demand code path at all;
 `tailscale down` persists across reboots by construction.

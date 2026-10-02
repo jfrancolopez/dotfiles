@@ -68,19 +68,6 @@ apply_finder() {
   fi
 }
 
-apply_menu_bar() {
-  printf '\nMenu bar (auto-hide: SketchyBar is the primary bar)\n'
-  show_pair '-g _HIHideMenuBar' "$(read_global_default _HIHideMenuBar)" true
-  show_pair '-g AppleMenuBarVisibleInFullscreen' "$(read_global_default AppleMenuBarVisibleInFullscreen)" false
-  if [ "$dry" -eq 1 ] || confirm 'Apply menu bar defaults?'; then
-    apply_or_print defaults write -g _HIHideMenuBar -bool true
-    apply_or_print defaults write -g AppleMenuBarVisibleInFullscreen -bool false
-    # Applies the change to the live session; defaults alone only affects
-    # apps launched afterwards. May trigger a one-time Automation prompt.
-    apply_or_print osascript -e 'tell application "System Events" to set autohide menu bar of dock preferences to true'
-  fi
-}
-
 apply_trackpad() {
   printf '\nTrackpad\n'
   show_pair 'com.apple.AppleMultitouchTrackpad Clicking' "$(read_default com.apple.AppleMultitouchTrackpad Clicking)" true
@@ -112,7 +99,6 @@ main() {
 
   apply_dock
   apply_finder
-  apply_menu_bar
   apply_trackpad
   show_documented_only
 }

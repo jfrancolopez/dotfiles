@@ -556,15 +556,6 @@ refresh_after_apply() {
   if [[ "$(detect_os)" == "omarchy" ]]; then
     refresh_omarchy_session "$dry" needs_manual
   fi
-  if [[ "$(detect_os)" == "macos" ]] && pgrep -x sketchybar >/dev/null 2>&1; then
-    # Restart the process instead of --reload: a reload keeps the old process,
-    # which never sees fonts installed after it started (icons render as "?").
-    if _macos_dotfiles_launchagent_loaded sketchybar; then
-      run_refresh_cmd "$dry" "sketchybar restarted" launchctl kickstart -k "gui/$(id -u)/com.dotfiles.sketchybar" || true
-    else
-      run_refresh_cmd "$dry" "sketchybar reloaded" sketchybar --reload || true
-    fi
-  fi
   # lan-mouse only reads its peer config at startup.
   if [[ "$(detect_os)" == "macos" ]] && pgrep -x lan-mouse >/dev/null 2>&1 && _macos_dotfiles_launchagent_loaded lanmouse; then
     run_refresh_cmd "$dry" "lan-mouse restarted" launchctl kickstart -k "gui/$(id -u)/com.dotfiles.lanmouse" || true
@@ -975,18 +966,15 @@ configure_macos_declared_services() {
   configure_macos_trusted_taps "$dry"
   package_declared_short tailscale && configure_macos_tailscale "$dry" || true
   configure_macos_ladomum_resolver "$dry" || true
-  configure_macos_sketchybar_font "$dry"
+  configure_macos_jetbrains_mono_font "$dry"
   package_declared_short dbus && configure_macos_dbus "$dry" || true
   package_declared_short borders && configure_macos_dotfiles_launchagent "$dry" borders || true
-  package_declared_short sketchybar && configure_macos_dotfiles_launchagent "$dry" sketchybar || true
   package_declared_short linearmouse && configure_macos_dotfiles_launchagent "$dry" linearmouse LinearMouse /Applications/LinearMouse.app || true
   configure_macos_lanmouse "$dry" || true
   # The KDE Connect app does not reliably (re)spawn its discovery daemon, so
   # kdeconnectd is managed like the other dotfiles daemons.
   package_declared_short kde-connect && configure_macos_dotfiles_launchagent "$dry" kdeconnectd kdeconnectd "/Applications/KDE Connect.app" || true
   configure_macos_clipboard_notify "$dry" || true
-  configure_macos_primary_bar_defaults "$dry"
-  configure_macos_menubar_background "$dry"
   configure_macos_dock_defaults "$dry"
   configure_macos_finder_defaults "$dry"
   configure_macos_input_defaults "$dry"
@@ -1165,10 +1153,9 @@ configure_macos_clipboard_notify() {
   configure_macos_dotfiles_launchagent "$dry" clipboard-notify "dotfiles-clipboard-notify watch" "$script"
 }
 
-# sketchybar icons need the Nerd Font files on disk; a cask can stay
-# registered in brew while the copied font files are gone, so verify the
-# files themselves and reinstall when they are missing.
-configure_macos_sketchybar_font() {
+# A font cask can stay registered in brew while the copied files are gone, so
+# verify the declared JetBrainsMono Nerd Font files and repair them if needed.
+configure_macos_jetbrains_mono_font() {
   local dry="$1" f caskroom
   package_declared_short font-jetbrains-mono-nerd-font || return 0
   command -v brew >/dev/null 2>&1 || return 0
@@ -1248,7 +1235,7 @@ _macos_brew_service_command() {
 
 _macos_brew_service_formula() {
   case "$1" in
-    borders|sketchybar) printf 'felixkratz/formulae/%s\n' "$1" ;;
+    borders) printf 'felixkratz/formulae/%s\n' "$1" ;;
     *) printf '%s\n' "$1" ;;
   esac
 }
@@ -1404,103 +1391,6 @@ _macos_lanmouse_accessibility_hint() {
   fi
 }
 
-configure_macos_primary_bar_defaults() {
-  local dry="$1"
-  if [[ "$dry" -eq 1 ]]; then
-    dim "  would run: defaults write -g _HIHideMenuBar -bool true"
-    dim "  would run: defaults write -g AppleMenuBarVisibleInFullscreen -bool false"
-    dim "  would run: osascript -e 'tell application \"System Events\" to set autohide menu bar of dock preferences to true'"
-    return 0
-  fi
-  defaults write -g _HIHideMenuBar -bool true
-  defaults write -g AppleMenuBarVisibleInFullscreen -bool false
-  if osascript -e 'tell application "System Events" to set autohide menu bar of dock preferences to true' >/dev/null 2>&1; then
-    ok "native menu bar auto-hide enabled"
-  else
-    warn "menu bar defaults written; live auto-hide may require System Events permission or a new login"
-  fi
-}
-
-# Tahoe's "Show menu bar background" toggle has no defaults key (it drives a
-# private SkyLight API persisted inside WindowServer), so the only automation
-# is UI-scripting the real toggle in System Settings. State is recorded in a
-# marker file: "enabled" once the checkbox is confirmed on, "manual" after a
-# failed attempt so updates stop popping System Settings open.
-_macos_menubar_background_marker() {
-  printf '%s\n' "${XDG_STATE_HOME:-$HOME/.local/state}/dotfiles/menubar-background"
-}
-
-configure_macos_menubar_background() {
-  local dry="$1" marker result=""
-  marker="$(_macos_menubar_background_marker)"
-  # The Menu Bar pane and its background toggle exist on macOS 26+ only.
-  [[ "$(sw_vers -productVersion 2>/dev/null | cut -d. -f1)" -ge 26 ]] 2>/dev/null || return 0
-  if [[ -f "$marker" && "$(cat "$marker" 2>/dev/null)" == "enabled" ]]; then
-    ok "native menu bar background enabled"
-    return 0
-  fi
-  if [[ -f "$marker" ]]; then
-    warn "menu bar background: automation failed before; flip it once manually:"
-    warn "  open \"x-apple.systempreferences:com.apple.ControlCenter-Settings.extension\"  -> turn ON 'Show menu bar background'"
-    warn "  then: printf enabled > $marker"
-    warn "or grant the terminal Automation + Accessibility (System Settings -> Privacy & Security), then retry:"
-    warn "  rm $marker && dotfiles update"
-    return 0
-  fi
-  if [[ "$dry" -eq 1 ]]; then
-    dim "  would enable 'Show menu bar background' via System Settings UI automation"
-    return 0
-  fi
-  open "x-apple.systempreferences:com.apple.ControlCenter-Settings.extension" >/dev/null 2>&1 || true
-  sleep 2
-  result="$(osascript 2>/dev/null <<'OSA' || true
-set deadline to (current date) + 15
-tell application "System Events"
-  tell process "System Settings"
-    repeat while (current date) < deadline
-      try
-        repeat with e in (entire contents of front window)
-          if class of e is checkbox then
-            set lbl to ""
-            try
-              set lbl to (name of e as string)
-            end try
-            if lbl is "" or lbl is "missing value" then
-              try
-                set lbl to (description of e as string)
-              end try
-            end if
-            if lbl contains "menu bar background" then
-              if (value of e as integer) is 1 then return "already"
-              click e
-              return "enabled"
-            end if
-          end if
-        end repeat
-      end try
-      delay 0.5
-    end repeat
-  end tell
-end tell
-return "notfound"
-OSA
-)"
-  osascript -e 'tell application "System Settings" to quit' >/dev/null 2>&1 || true
-  mkdir -p "$(dirname "$marker")"
-  case "$result" in
-    already|enabled)
-      printf 'enabled' >"$marker"
-      ok "native menu bar background enabled (System Settings toggle)"
-      ;;
-    *)
-      printf 'manual' >"$marker"
-      warn "could not toggle 'Show menu bar background' automatically (needs Accessibility/Automation permission for the terminal)"
-      warn "flip it once manually: open \"x-apple.systempreferences:com.apple.ControlCenter-Settings.extension\""
-      warn "then record it: printf enabled > $marker"
-      ;;
-  esac
-}
-
 _macos_mas_doctor() {
   local id installed missing=()
   local ids=()
@@ -1520,18 +1410,6 @@ _macos_mas_doctor() {
     ok "all App Store apps installed"
   else
     warn "missing App Store app id(s): ${missing[*]}; sign into the App Store, then run dotfiles update"
-    return 1
-  fi
-}
-
-_macos_menubar_background_doctor() {
-  local marker
-  marker="$(_macos_menubar_background_marker)"
-  [[ "$(sw_vers -productVersion 2>/dev/null | cut -d. -f1)" -ge 26 ]] 2>/dev/null || return 0
-  if [[ -f "$marker" && "$(cat "$marker" 2>/dev/null)" == "enabled" ]]; then
-    ok "native menu bar background enabled"
-  else
-    warn "menu bar background not confirmed; run dotfiles update (or flip it in System Settings -> Menu Bar)"
     return 1
   fi
 }
@@ -1705,47 +1583,25 @@ configure_macos_desktop_apps() {
 # Presetting alternateDefaultShortcuts selects the recommended shortcut set.
 configure_macos_rectangle_defaults() {
   local dry="$1"
-  local top_gap=28
-  local shortcuts_set=0
-  local top_gap_set=0
-  local changed=0
   [[ -d /Applications/Rectangle.app ]] || return 0
   if defaults read com.knollsoft.Rectangle alternateDefaultShortcuts >/dev/null 2>&1; then
-    shortcuts_set=1
-  fi
-  if [[ "$(defaults read com.knollsoft.Rectangle screenEdgeGapTop 2>/dev/null || true)" == "$top_gap" ]]; then
-    top_gap_set=1
-  fi
-  if [[ "$shortcuts_set" -eq 1 && "$top_gap_set" -eq 1 ]]; then
-    ok "Rectangle shortcuts initialized; top gap matches SketchyBar"
+    ok "Rectangle shortcuts initialized"
     return 0
   fi
   if [[ "$dry" -eq 1 ]]; then
-    if [[ "$shortcuts_set" -eq 0 ]]; then
-      dim "  would run: defaults write com.knollsoft.Rectangle alternateDefaultShortcuts -bool true"
-      dim "  would run: defaults write com.knollsoft.Rectangle launchOnLogin -bool true"
-    fi
-    if [[ "$top_gap_set" -eq 0 ]]; then
-      dim "  would run: defaults write com.knollsoft.Rectangle screenEdgeGapTop -int $top_gap"
-    fi
-    dim "  would restart Rectangle to activate updated defaults"
+    dim "  would run: defaults write com.knollsoft.Rectangle alternateDefaultShortcuts -bool true"
+    dim "  would run: defaults write com.knollsoft.Rectangle launchOnLogin -bool true"
+    dim "  would restart Rectangle to activate the recommended shortcuts"
     return 0
   fi
-  if [[ "$shortcuts_set" -eq 0 ]]; then
-    defaults write com.knollsoft.Rectangle alternateDefaultShortcuts -bool true
-    defaults write com.knollsoft.Rectangle launchOnLogin -bool true
-    changed=1
-  fi
-  if [[ "$top_gap_set" -eq 0 ]]; then
-    defaults write com.knollsoft.Rectangle screenEdgeGapTop -int "$top_gap"
-    changed=1
-  fi
-  if [[ "$changed" -eq 1 ]] && pgrep -x Rectangle >/dev/null 2>&1; then
+  defaults write com.knollsoft.Rectangle alternateDefaultShortcuts -bool true
+  defaults write com.knollsoft.Rectangle launchOnLogin -bool true
+  if pgrep -x Rectangle >/dev/null 2>&1; then
     killall Rectangle >/dev/null 2>&1 || true
     sleep 1
     open -ga Rectangle >/dev/null 2>&1 || true
   fi
-  ok "Rectangle defaults applied (needs Accessibility to act)"
+  ok "Rectangle recommended shortcuts enabled (needs Accessibility to act)"
 }
 
 # Cmd-Space for Raycast is two prefs: Spotlight's symbolic hotkey 64 must be
@@ -2788,8 +2644,6 @@ print_next_steps() {
     printf '  macOS Accessibility: System Settings -> Privacy & Security -> Accessibility; enable AeroSpace, borders, Rectangle, Raycast, and LinearMouse\n'
     printf '    (AeroSpace/Rectangle shortcuts and LinearMouse scrolling do nothing until this is granted)\n'
     printf '  Raycast: Cmd-Space is preconfigured; if Spotlight still opens, log out and back in once\n'
-    printf '  Menu bar background: update toggles it via System Settings automation (allow the Accessibility/Automation prompt);\n'
-    printf '    manual fallback: open "x-apple.systempreferences:com.apple.ControlCenter-Settings.extension" -> turn ON "Show menu bar background"\n'
     printf '  Finder toolbar: re-add AirDrop via Finder -> View -> Customize Toolbar (sidebar: Finder -> Settings -> Sidebar)\n'
   elif package_declared tailscale; then
     printf '  Tailscale login: sudo tailscale up\n'
@@ -3110,7 +2964,6 @@ cmd_doctor() {
     _macos_app_doctor "Raycast" "/Applications/Raycast.app" || failed=1
     _macos_process_doctor Raycast Raycast || failed=1
     _macos_dotfiles_launchagent_doctor borders borders || failed=1
-    _macos_dotfiles_launchagent_doctor sketchybar sketchybar || failed=1
     _macos_dotfiles_launchagent_doctor linearmouse LinearMouse || failed=1
     if package_declared_short kde-connect; then
       _macos_dbus_session_doctor || failed=1
@@ -3122,7 +2975,6 @@ cmd_doctor() {
     _macos_tailscale_doctor || failed=1
     _macos_ladomum_resolver_doctor || failed=1
     _macos_mas_doctor || failed=1
-    _macos_menubar_background_doctor || failed=1
     _macos_dock_doctor || failed=1
     _macos_finder_doctor || failed=1
     _macos_input_doctor || failed=1
@@ -3234,7 +3086,6 @@ cmd_status() {
       _macos_process_status Rectangle Rectangle
       _macos_rectangle_status
       _macos_dotfiles_launchagent_status borders borders
-      _macos_dotfiles_launchagent_status sketchybar sketchybar
       _macos_dotfiles_launchagent_status linearmouse LinearMouse
       _macos_dbus_session_status
       _macos_dotfiles_launchagent_status kdeconnectd kdeconnectd
@@ -4478,7 +4329,6 @@ _macos_brew_service_state_from_line() {
 _macos_brew_service_error_log() {
   case "$1" in
     borders) printf '%s\n' /opt/homebrew/var/log/borders/borders.err.log ;;
-    sketchybar) printf '%s\n' /opt/homebrew/var/log/sketchybar/sketchybar.err.log ;;
     *) return 1 ;;
   esac
 }
@@ -4591,13 +4441,12 @@ _macos_aerospace_status() {
   fi
 }
 
-# The sketchybar config renders icons with JetBrainsMono Nerd Font; when the
-# font files are missing every icon shows as "?".
+# Verify the installed files rather than trusting only the Homebrew cask receipt.
 _macos_nerd_font_doctor() {
   local f
   for f in "$HOME/Library/Fonts"/JetBrainsMonoNerdFont*.ttf /Library/Fonts/JetBrainsMonoNerdFont*.ttf; do
     if [[ -f "$f" ]]; then
-      ok "JetBrainsMono Nerd Font installed (sketchybar icons)"
+      ok "JetBrainsMono Nerd Font installed"
       return 0
     fi
   done

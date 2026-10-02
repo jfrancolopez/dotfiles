@@ -70,7 +70,7 @@ Phase 2 — stow layers
 - [x] 11 macos-layer-skeleton (repo, S) — absorbs former task 12; there is no
       task 12
 
-Phase 3 — SketchyBar (Waybar-inspired)
+Phase 3 — retired SketchyBar implementation (historical; removed 2026-10-02)
 - [x] 13 sketchybar-core (repo, M) — needs 10
 - [x] 14 sketchybar-system-plugins (repo, M) — needs 13
 - [x] 15 sketchybar-network-media-plugins (repo, M) — needs 13
@@ -98,11 +98,8 @@ Phase 7 — apply on lamac (mac-local, human present, in this exact order)
 - [ ] 29 final-review-and-push (repo, S) — needs 28
 
 Phase 8 — post-migration improvements
-- [x] 30 sketchybar-primary-bar (repo + mac-local, M) — hide native menu bar,
-      bar opacity/blur, aerospace per-monitor top gap; reboot check folds
-      into 28
-- [x] 31 sketchybar-notch-polish (repo, S) — media island to position `e`
-      so the notch never covers it
+- [x] 30 sketchybar-primary-bar (historical; retired 2026-10-02)
+- [x] 31 sketchybar-notch-polish (historical; retired 2026-10-02)
 - [x] 32 tailscale-manual-mode (mac-local + docs, M) — investigation stands
       but its fix FAILED validation (2026-07-08): the extension rewrites the
       config on every launch; superseded by task 33

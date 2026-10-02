@@ -21,9 +21,8 @@ caarlos0/tap/timer
 mas
 duti
 
-# window/bar stack (run via brew services)
+# window borders
 felixkratz/formulae/borders
-felixkratz/formulae/sketchybar
 
 # containers + Kubernetes
 docker

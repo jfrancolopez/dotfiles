@@ -27,12 +27,10 @@ Conflict wizard guidance: choose "backup" for everything (originals land in
 `~/.dotfiles-backup/<ts>/`); nothing should be adopted. Then:
 ```bash
 brew services start felixkratz/formulae/borders
-brew services start felixkratz/formulae/sketchybar
 open -a Ghostty                   # grant permissions prompts as they appear
 exec zsh
 ```
-Expected permission prompts (approve): AeroSpace/Rectangle Accessibility,
-SketchyBar automation for Spotify (first media event).
+Expected permission prompts (approve): AeroSpace/Rectangle Accessibility.
 
 ## Safety concerns
 Do not run with `DOTFILES_STOW_CONFLICTS=adopt`. If bootstrap fails midway it
@@ -46,7 +44,7 @@ dotfiles status          # profile-lamac-macos, all layers, no drift, stow clean
 dotfiles doctor          # exit 0
 git config --global --list | head -3          # gitconfig restored
 readlink ~/.zshrc        # -> dotfiles/stow/global/zsh/.zshrc
-ls -la ~/.config/aerospace ~/.config/sketchybar ~/.config/ghostty
+ls -la ~/.config/aerospace ~/.config/ghostty
 ssh -G github.com >/dev/null && echo ssh-config-ok
 ```
 
@@ -57,7 +55,7 @@ uninstall manually.
 
 ## Acceptance criteria
 All validation commands pass in a NEW terminal; Ghostty opens with the repo
-theme; AeroSpace workspaces switch and SketchyBar reflects them; borders
+theme; AeroSpace workspaces switch; the native menu bar and borders are
 visible.
 
 ## Result
@@ -65,8 +63,8 @@ Partial on lamac. Cleaned remaining atuin conflict by moving
 `~/.config/atuin` into `~/.dotfiles-backup/legacy-2026-07-07-211258/.config/`.
 `scripts/dotfiles apply` completed and all three layers are stowed; stow dry-run
 is clean. Created bootstrap-equivalent `~/.local/bin/dotfiles` symlink. Borders
-and SketchyBar are running via LaunchAgent/process fallback. Fresh login zsh
-finds `dotfiles` and `brew`; SSH config validates.
+is running via its LaunchAgent. Fresh login zsh finds `dotfiles` and `brew`;
+SSH config validates.
 
 Blocked item: `desktoppr` cask install requires a sudo password prompt and failed
 from the non-TTY tool session. Run from a real terminal:

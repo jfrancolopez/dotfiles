@@ -30,7 +30,6 @@ change true everywhere it should apply.
 | macOS Ghostty profile override for `lamac` | `stow/profile-lamac-macos/ghostty/.config/ghostty/profile-overrides` |
 | macOS AeroSpace | `stow/os-macos/aerospace/.config/aerospace/aerospace.toml` |
 | macOS Borders | `stow/os-macos/borders/.config/borders/bordersrc` |
-| macOS SketchyBar | `stow/os-macos/sketchybar/.config/sketchybar/` |
 | macOS wallpaper LaunchAgent template | `stow/os-macos/wallpapers/.local/share/dotfiles/com.dotfiles.wallpaper.plist` |
 | Shared wallpapers | `stow/global/wallpapers/.local/share/wallpapers/shared/` |
 | Monitor scale/resolution for `nox` | `stow/profile-nox-omarchy/hyprland/.config/hypr/monitors.lua` |

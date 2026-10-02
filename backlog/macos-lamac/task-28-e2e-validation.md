@@ -21,8 +21,8 @@ On lamac, after a REBOOT:
 - login shell: p10k prompt, aliases (`l`, `ll`, `gs`), zoxide, atuin history
 - `dotfiles status` / `doctor`: clean; `dotfiles update --dry-run`: no-op plan
 - Ghostty: theme/font/profile-overrides active (font-size 13, option-as-alt)
-- AeroSpace + SketchyBar: workspace switch updates the bar; cpu/mem/battery/
-  volume/wifi/tailscale items live; Spotify shows in the island when playing
+- AeroSpace workspaces switch correctly; the native macOS menu bar stays
+  visible and no replacement bar process or reserved top gap returns
 - borders drawn; Rectangle snapping works alongside AeroSpace
 - `dotfiles wallpaper rotate` sets a wallpaper; create
   `~/Pictures/local-wallpapers`, add an image, verify it joins the pool
@@ -64,5 +64,5 @@ scripts/macos-inventory.sh scripts/macos-defaults.sh .githooks/pre-commit ...`,
 `bash tests/os-detection.sh`, and `bash .githooks/pre-commit`.
 
 lamac pre-reboot state: fresh login zsh finds `dotfiles` and `brew`, stow
-dry-run is clean, borders/sketchybar processes are running, but `desktoppr`
-still needs terminal sudo install and Tailscale/Atuin login are pending.
+dry-run is clean, and borders is running, but `desktoppr` still needs terminal
+sudo install and Tailscale/Atuin login are pending.

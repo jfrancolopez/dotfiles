@@ -1,15 +1,9 @@
-# Startup and SketchyBar integration.
+# Startup and workspace configuration.
 config-version = 2
 start-at-login = true
 
 after-login-command = []
 after-startup-command = []
-# Notify SketchyBar when the focused AeroSpace workspace changes.
-exec-on-workspace-change = [
-  '/bin/bash',
-  '-c',
-  'sketchybar --trigger aerospace_workspace_change FOCUSED_WORKSPACE=$AEROSPACE_FOCUSED_WORKSPACE',
-]
 
 # Layout defaults.
 enable-normalization-flatten-containers = true
@@ -36,19 +30,16 @@ on-focused-monitor-changed = ['move-mouse monitor-lazy-center']
 [key-mapping]
 preset = 'qwerty'
 
-# Gaps apply to tiled layouts. The notched built-in display keeps a macOS
-# reserved strip above windows; external monitors need the SketchyBar reserve.
+# Gaps apply to tiled layouts inside the work area reserved by macOS.
 [gaps]
 inner.horizontal = 5
 inner.vertical = 5
 outer.left = 5
 outer.right = 5
-# The native menu bar is auto-hidden (scripts/macos-defaults.sh) and
-# SketchyBar (height 28) is the primary bar on every display.
-outer.top = [{ monitor.'built-in' = 5 }, 38]
+outer.top = 5
 outer.bottom = 5
 
-# Workspace placement. SketchyBar renders these in the explicit order.
+# Workspace placement.
 [workspace-to-monitor-force-assignment]
 'one' = 'main'   # Communication
 'two' = 'main'   # Personal and work mail
